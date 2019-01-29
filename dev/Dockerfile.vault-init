@@ -1,0 +1,24 @@
+FROM debian:stretch
+
+# This is the release of Vault to pull in.
+ENV VAULT_VERSION=1.0.2
+ENV ARCH=amd64
+
+RUN \
+	apt-get update -y && \
+	apt-get install -y \
+		wget \
+		unzip \
+		jq
+
+RUN \
+	mkdir /tmp/build && \
+	cd /tmp/build && \
+	wget https://releases.hashicorp.com/vault/${VAULT_VERSION}/vault_${VAULT_VERSION}_linux_${ARCH}.zip && \
+	unzip -d /bin vault_${VAULT_VERSION}_linux_${ARCH}.zip && \
+	cd /tmp && \
+	rm -rf /tmp/build
+
+# This script should be mounted at runtime
+# into a $PATH dir
+ENTRYPOINT ["entrypoint.bash"]

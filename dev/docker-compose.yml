@@ -1,0 +1,26 @@
+version: '3'
+services:
+  vault:
+    image: "vault"
+    hostname: "vault"
+    entrypoint: vault server -config=/etc/vault/config.hcl
+    ports:
+      - "8200:8200"
+    volumes:
+      - ./vault/config:/etc/vault:ro
+      - ./vault/plugins:/var/vault/plugins:ro
+
+  vault-init:
+    build:
+      dockerfile: Dockerfile.vault-init
+      context: .
+    depends_on:
+      - vault
+    links:
+      - "vault:vault"
+    environment:
+      VAULT_ADDR: "http://vault:8200"
+      VAULT_PLUGIN_DIR: "/var/vault/plugins"
+    volumes:
+      - ./vault/entrypoint:/usr/local/bin:ro
+      - ./vault/plugins:/var/vault/plugins:ro
