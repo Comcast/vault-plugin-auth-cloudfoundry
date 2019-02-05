@@ -22,7 +22,7 @@ The Vault project, at `v1.0.2`, does not support the new `go mod` system. Instea
 
 ## Create go.mod file
 
-##### 1
+### 1
 
 Checkout the Vault repository at the [`v1.0.2` / `37a1dc9c477c1c68c022d2084550f25bf20cac33`](https://github.com/hashicorp/vault/tree/37a1dc9c477c1c68c022d2084550f25bf20cac33) version.
 This corresponds to the released `v1.0.2` Vault server, eg:
@@ -36,7 +36,7 @@ Ths project does have a `./vendor` directory with a [`vendor.json`](https://gith
 This vendor file points to a repo that no longer exists on github.com (`github.com/tyrannosaurus-becks/aliyun-oss-go-sdk`), which prevents `go mod`
 from using this file to create its own `go.mod` file. Delete the single entry in `./vendor/vendor.json` that references this repository.
 
-##### 2
+### 2
 
 Initialize repo as `go mod` repo:
 
@@ -52,7 +52,7 @@ go: converting vendor/vendor.json: stat appengine_internal/base@: unrecognized i
 
 Copy contents of `require` block in the resulting `go.mod` file.
 
-##### 3
+### 3
 
 Switch to this project. Initialize project as `go mod` project
 
@@ -69,7 +69,7 @@ Remove the following require statements:
 Add the following require statements:
 * `github.com/hashicorp/vault v1.0.2`
 
-##### 4
+### 4
 
 Remove unused deps by running tidy
 
