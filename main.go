@@ -18,6 +18,8 @@ func main() {
 	tlsConfig := apiClientMeta.GetTLSConfig()
 	tlsProviderFunc := pluginutil.VaultPluginTLSProvider(tlsConfig)
 
+	// Changed from original Vault mock plugin from `TypeLogical` to `TypeCredential`
+	// so that plugin is an "auth" plugin.
 	factoryFunc := mock.FactoryType(logical.TypeCredential)
 
 	err := plugin.Serve(&plugin.ServeOpts{

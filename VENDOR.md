@@ -6,8 +6,9 @@ to work with the new `go mod` system.
 
 ## Background
 
-At the time of writting, the project's main.go is identical to
-the [`mock-plugin`](https://github.com/hashicorp/vault/blob/v1.0.2/logical/plugin/mock/mock-plugin/main.go) from the Vault repo.
+At the time of writting, the project's main.go is nearly identical to
+the [`mock-plugin`](https://github.com/hashicorp/vault/blob/v1.0.2/logical/plugin/mock/mock-plugin/main.go) from the Vault repo
+(There's one minor change from `TypeLogical` to `TypeCredential` so that the binary is an "auth" plugin).
 
 It imports the following:
 
