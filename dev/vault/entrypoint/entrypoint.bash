@@ -3,41 +3,34 @@ set -e
 
 sleep 1
 
-# Initialize server, storing resulting JSON
-vaultInit=$(vault operator init \
-	-format=json \
-	-key-shares=1 \
-	-key-threshold=1)
-
-# Extract the unseal key and root token from `operator init` output
-unsealKey=$(echo "${vaultInit}" | jq -r ".unseal_keys_b64[0]")
-rootToken=$(echo "${vaultInit}" | jq -r ".root_token")
-
-# Normal "vault" commands will use this as their token
-export VAULT_TOKEN="${rootToken}"
-
-# Use unseal key to unseal server.
-# This is required to make server usable.
-vault operator unseal "${unsealKey}"
-
-# Print root token to user
-echo "================="
-echo "Vault Server unsealed"
-echo "ROOT TOKEN: \"${rootToken}\""
-echo "UI: http://localhost:8200/ui"
-echo "================="
+vault login "${VAULT_TOKEN}" >/dev/null 2>&1
 
 # Register plugin(s)
-pluginHash=$(sha256sum ${VAULT_PLUGIN_DIR}/mock-plugin | head -c 64)
-vault write sys/plugins/catalog/mock-plugin \
-	sha_256=${pluginHash} \
-	command=mock-plugin
+for p in ${VAULT_PLUGIN_DIR}/*; do
+	# Ensure plugin is executable
+	if [[ -x "${p}" ]]; then
+		pluginHash=$(sha256sum "${p}" | head -c 64)
+		pluginCommand=$(basename "${p}")
+		pluginName=${pluginCommand#vault-plugin-auth-}
 
-# Enable plugin(s)
-vault secrets enable \
-	-path=mock-plugin \
-	-plugin-name=mock-plugin \
-	plugin
+		echo "Enabling plugin: ${pluginCommand}"
+
+		set -x
+
+		# Register plugin
+		# https://www.vaultproject.io/api/system/plugins-catalog.html#register-plugin
+		vault plugin register \
+			-sha256="${pluginHash}" \
+			-command="${pluginCommand}" \
+			auth "${pluginName}"
+
+		# Enable plugin
+		# https://www.vaultproject.io/api/system/auth.html#enable-auth-method
+		vault auth enable "${pluginName}"
+
+		set +x
+	fi
+done
 
 # Keep process alive
 sleep 1024d

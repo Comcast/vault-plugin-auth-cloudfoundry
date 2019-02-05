@@ -1,4 +1,4 @@
-module github.com/Comcast/vault-plugin-auth-cloudfoundry
+module github.comcast.com/osfp-cloudfoundry/vault-plugin-auth-cloudfoundry
 
 require (
 	contrib.go.opencensus.io/exporter/ocagent v0.4.3 // indirect
@@ -67,9 +67,7 @@ require (
 	github.com/tmc/grpc-websocket-proxy v0.0.0-20190109142713-0ad062ec5ee5 // indirect
 	github.com/ugorji/go/codec v0.0.0-20190204201341-e444a5086c43 // indirect
 	github.com/xiang90/probing v0.0.0-20190116061207-43a291ad63a2 // indirect
-	golang.org/x/crypto v0.0.0-20190313024323-a1f597ede03a // indirect
-	golang.org/x/net v0.0.0-20190313220215-9f648a60d977 // indirect
-	golang.org/x/sys v0.0.0-20190316082340-a2f829d7f35f // indirect
+	golang.org/x/net v0.0.0-20181114220301-adae6a3d119a // indirect
 	google.golang.org/api v0.1.0 // indirect
 	gopkg.in/gorethink/gorethink.v4 v4.1.0 // indirect
 	gopkg.in/ory-am/dockertest.v2 v2.2.3 // indirect

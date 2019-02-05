@@ -4,6 +4,7 @@ FROM debian:stretch
 ENV VAULT_VERSION=1.0.2
 ENV ARCH=amd64
 
+# Install utility programs
 RUN \
 	apt-get update -y && \
 	apt-get install -y \
@@ -11,6 +12,7 @@ RUN \
 		unzip \
 		jq
 
+# Install Vault CLI
 RUN \
 	mkdir /tmp/build && \
 	cd /tmp/build && \
