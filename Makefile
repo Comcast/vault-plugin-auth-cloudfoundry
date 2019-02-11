@@ -23,4 +23,5 @@ $(TARGET_DIR)/$(TARGET): $(SRC)
 		--workdir="/go/src/${SRC_PATH}" \
 		"golang:${GOLANG_VERSION}" \
 			go build \
+				-mod=vendor \
 				-o="/OUTPUT/${TARGET}"
