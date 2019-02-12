@@ -51,8 +51,8 @@ github.com/hashicorp/hcl/json/token
 # github.com/hashicorp/vault v1.0.2
 github.com/hashicorp/vault/helper/pluginutil
 github.com/hashicorp/vault/logical
+github.com/hashicorp/vault/logical/framework
 github.com/hashicorp/vault/logical/plugin
-github.com/hashicorp/vault/logical/plugin/mock
 github.com/hashicorp/vault/api
 github.com/hashicorp/vault/helper/certutil
 github.com/hashicorp/vault/helper/consts
@@ -64,16 +64,15 @@ github.com/hashicorp/vault/helper/license
 github.com/hashicorp/vault/helper/logging
 github.com/hashicorp/vault/physical
 github.com/hashicorp/vault/physical/inmem
-github.com/hashicorp/vault/logical/plugin/pb
 github.com/hashicorp/vault/helper/errutil
-github.com/hashicorp/vault/logical/framework
-github.com/hashicorp/vault/helper/hclutil
 github.com/hashicorp/vault/helper/parseutil
+github.com/hashicorp/vault/helper/salt
+github.com/hashicorp/vault/helper/strutil
+github.com/hashicorp/vault/logical/plugin/pb
+github.com/hashicorp/vault/helper/hclutil
 github.com/hashicorp/vault/helper/compressutil
 github.com/hashicorp/vault/helper/locksutil
 github.com/hashicorp/vault/helper/pathmanager
-github.com/hashicorp/vault/helper/salt
-github.com/hashicorp/vault/helper/strutil
 # github.com/hashicorp/yamux v0.0.0-20181012175058-2f1d1f20f75d
 github.com/hashicorp/yamux
 # github.com/mitchellh/go-homedir v1.0.0
