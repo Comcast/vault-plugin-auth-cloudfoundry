@@ -10,3 +10,8 @@
 
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
+
+dev/certs/*.pem
+dev/certs/*.srl
+dev/certs/*.key
+dev/certs/*.csr
