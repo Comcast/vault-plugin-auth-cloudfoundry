@@ -1,5 +1,5 @@
 .PHONY: all
-all: rootCA.pem instance.pem
+all: rootCA.pem instance.pem instance-invalid.pem
 
 clean:
 	rm -f \
@@ -10,7 +10,6 @@ clean:
 		rootCA.pem \
 		rootCA.key \
 		rootCA.srl
-
 
 ##
 ## Root CA
@@ -72,4 +71,44 @@ instance.pem: instance.csr
 		-days 1024 \
 		-out $@ \
 		-extensions instance \
+		-sha256
+
+##
+## Invalid instance cert
+##
+
+instance-invalid.key.pem:
+	openssl genrsa \
+		-out instance-invalid.key \
+		1028
+	openssl pkcs8 \
+		-topk8 \
+		-nocrypt \
+		-inform PEM \
+		-outform PEM \
+		-in instance-invalid.key \
+		-out $@
+
+instance-invalid.csr: instance-invalid.key.pem
+	openssl req \
+		-newkey rsa:2048 \
+		-key instance-invalid.key \
+		-sha256 \
+		-subj '/CN=vault-plugin-auth-cloudfoundry:DEV:instance/OU=organization:org-uuid/OU=space:space-uuid/OU=app:app-uuid' \
+		-nodes \
+		-in rootCA.key \
+		-out $@ \
+		-outform PEM
+
+instance-invalid.pem: instance-invalid.csr
+	openssl x509 \
+		-req \
+		-extfile config/ca.cfg \
+		-in instance-invalid.csr \
+		-CA rootCA.pem \
+		-CAkey rootCA.key \
+		-CAcreateserial \
+		-days 1024 \
+		-out $@ \
+		-extensions missing-keyusage \
 		-sha256

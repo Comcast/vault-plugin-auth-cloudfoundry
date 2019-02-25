@@ -11,37 +11,37 @@ Prereqs:
 
 * Register plugin
   ```shell
-  # Register plugin as `cf`
+  # Register plugin as `cloudfoundry`
   vault plugin register \
   	-sha256="$(shasum -a 256 /tmp/vault/vault-plugin-auth-cloudfoundry |head -c64)" \
   	-command=vault-plugin-auth-cloudfoundry \
-  	auth cf
+  	auth cloudfoundry
   ```
 
 * Enable plugin
   ```shell
-  # Enable at path `/cf`
-  vault auth enable -path=cf cf
+  # Enable at path `/cloudfoundry`
+  vault auth enable -path=cloudfoundry/ cloudfoundry
   ```
 
 * Configure root certificate authority
   ```shell
-  vault write auth/cf/config ca=@path/to/ca.crt
+  vault write auth/cloudfoundry/config ca=@path/to/ca.crt
   ```
 
-* Configure org to policy mapping (optional)
+* Configure org to policy mapping (optional). Replace `org-uuid` with actual UUID.
   ```shell
-  vault write auth/cf/map/organizations/5c6e25f1-921b-40f4-a652-9e8501ca0a6b value=$name-of-policy,$another-policy
+  vault write auth/cloudfoundry/map/organizations/org-uuid value=$name-of-policy,$another-policy
   ```
 
-* Configure space to policy mapping (optional)
+* Configure space to policy mapping (optional). Replace `space-uuid` with actual UUID.
   ```shell
-  vault write auth/cf/map/spaces/5c6e25f1-921b-40f4-a652-9e8501ca0a6b value=$name-of-policy,$another-policy
+  vault write auth/cloudfoundry/map/spaces/space-uuid value=$name-of-policy,$another-policy
   ```
 
 * Login using CF instance certificate
   ```shell
-  vault write auth/cf/login cert=@path/to/instance.crt
+  vault write auth/cloudfoundry/login cert=@path/to/instance.crt
   ```
 
 ### Local Development
@@ -67,11 +67,11 @@ VAULT_DEV_LISTEN_ADDRESS=0.0.0.0:8200 vault server -dev -dev-root-token-id="root
 
 In another terminal, register and enable the plugin:
 ```shell
-# Register plugin as `cf`
+# Register plugin as `cloudfoundry`
 vault plugin register \
 	-sha256="$(shasum -a 256 /tmp/vault/vault-plugin-auth-cloudfoundry |head -c64)" \
 	-command=vault-plugin-auth-cloudfoundry \
-	auth cf
-# Enable at path `/cf`
-vault auth enable -path=cf cf
+	auth cloudfoundry
+# Enable at path `/cloudfoundry`
+vault auth enable -path=cloudfoundry cloudfoundry
 ```
