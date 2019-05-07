@@ -113,14 +113,13 @@ func (b *backend) pathAuthLogin(ctx context.Context, req *logical.Request, d *fr
 	}
 	//cert, err := parseCertificateFromJWT(raw)
 
-	jwtParsedRecord, err := parseCertificateFromJWT2(raw)
-
-	cert := jwtParsedRecord.cert
-	//policies := jwtParsedRecord.policies
-
+	jwtParsedRecord, err := parseCertificateFromJWT(raw)
 	if err != nil {
 		return logical.ErrorResponse(err.Error()), nil
 	}
+
+	cert := jwtParsedRecord.cert
+	//policies := jwtParsedRecord.policies
 
 	var cf struct {
 		org   string
@@ -213,47 +212,7 @@ func (b *backend) pathAuthRenew(ctx context.Context, req *logical.Request, d *fr
 
 // The JWT logic
 
-func parseCertificateFromJWT(raw string) (*x509.Certificate, error) {
-	tok, err := jwt.ParseSigned(raw)
-
-	if err != nil {
-		return nil, err
-	}
-
-	hdrs := tok.Headers
-	if len(hdrs) != 1 {
-		return nil, errors.New("Incorrect header length")
-	}
-
-	jwk := hdrs[0].ExtraHeaders["JWK"]
-
-	jwkMap := jwk.(map[string]interface{})
-
-	x5c := jwkMap["x5c"]
-
-	x5cArray := x5c.([]interface{})
-
-	x5cSigningKey := x5cArray[0].(string)
-
-	b64bytes, errb64 := fromBase64Bytes(x5cSigningKey)
-	if errb64 != nil {
-		return nil, errb64
-	}
-
-	cert, errpc := x509.ParseCertificate(b64bytes)
-
-	if errpc != nil {
-		return nil, errpc
-	}
-
-	if cert.KeyUsage&x509.KeyUsageKeyAgreement == 0 {
-		return nil, errors.New("Invalid cert key usage")
-	}
-
-	return cert, nil
-}
-
-func parseCertificateFromJWT2(raw string) (*jwt_record, error) {
+func parseCertificateFromJWT(raw string) (*jwt_record, error) {
 	tok, err := jwt.ParseSigned(raw)
 
 	jwtr := new(jwt_record)

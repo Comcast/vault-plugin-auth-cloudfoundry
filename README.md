@@ -88,3 +88,26 @@ vault plugin register \
 # Enable at path `/cloudfoundry`
 vault auth enable -path=cloudfoundry cloudfoundry
 ```
+
+You will need instance crt and key files from a CF instance and then you will need to set two environment variables:
+
+```shell
+export CF_INSTANCE_KEY="<Local/Path/To/instance.key>"
+export CF_INSTANCE_CERT="<Local/Path/To/instance.crt>"
+```
+
+Once this is done, you can then run cmd/cf-jwtmain.go
+
+```shell
+# This currently builds a JWT token and installs it in /tmp in a file called jwt. This will be more sophisticated later.
+# go run main.go <policy> 
+# where policy is a previously configured policy in Vault for the org/space for the instance.
+Example: go run main.go read-only
+```
+
+Once you have a local JWT token, you can then issue a login command.
+
+```shell
+vault write auth/cloudfoundry/login jwt=@/tmp/jwt
+
+```
