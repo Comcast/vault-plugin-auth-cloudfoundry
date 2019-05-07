@@ -3,11 +3,13 @@ package main
 import (
 	"context"
 	"crypto/x509"
-	"encoding/pem"
+	"encoding/base64"
 	"errors"
 	"fmt"
+	"gopkg.in/square/go-jose.v2/jwt"
 	"log"
 	"os"
+	"regexp"
 	"strings"
 	"time"
 
@@ -22,8 +24,14 @@ const (
 	pathConfig = "config"
 )
 
+type jwt_record struct {
+	cert     *x509.Certificate
+	policies []string
+}
+
 func main() {
 	apiClientMeta := &pluginutil.APIClientMeta{}
+
 	flags := apiClientMeta.FlagSet()
 	flags.Parse(os.Args[1:]) // Ignore command, strictly parse flags
 
@@ -80,7 +88,7 @@ func Backend(c *logical.BackendConfig) *backend {
 			&framework.Path{
 				Pattern: pathLogin,
 				Fields: map[string]*framework.FieldSchema{
-					"cert": &framework.FieldSchema{
+					"jwt": &framework.FieldSchema{
 						Type: framework.TypeString,
 					},
 				},
@@ -99,23 +107,19 @@ func Backend(c *logical.BackendConfig) *backend {
 }
 
 func (b *backend) pathAuthLogin(ctx context.Context, req *logical.Request, d *framework.FieldData) (*logical.Response, error) {
-	certData := d.Get("cert").(string)
-	if certData == "" {
-		return logical.ErrorResponse("missing cert"), nil
+	raw := d.Get("jwt").(string)
+	if raw == "" {
+		return logical.ErrorResponse("missing jwt"), nil
 	}
+	//cert, err := parseCertificateFromJWT(raw)
 
-	block, _ := pem.Decode([]byte(certData))
-	if block == nil {
-		return logical.ErrorResponse("invalid cert"), nil
-	}
+	jwtParsedRecord, err := parseCertificateFromJWT2(raw)
 
-	cert, err := x509.ParseCertificate(block.Bytes)
+	cert := jwtParsedRecord.cert
+	//policies := jwtParsedRecord.policies
+
 	if err != nil {
-		return logical.ErrorResponse(fmt.Sprintf("invalid cert: %s", err)), nil
-	}
-
-	if cert.KeyUsage&x509.KeyUsageKeyAgreement == 0 {
-		return logical.ErrorResponse("invalid cert key usage"), nil
+		return logical.ErrorResponse(err.Error()), nil
 	}
 
 	var cf struct {
@@ -162,6 +166,14 @@ func (b *backend) pathAuthLogin(ctx context.Context, req *logical.Request, d *fr
 	}
 
 	orgPolicies, err := b.orgMap.Policies(ctx, req.Storage, cf.org)
+
+	/*
+	       for _, policy := range policies {
+	            containsOrgPolicy := contains(orgPolicies, policy)
+	   	}
+
+	*/
+
 	if err != nil {
 		return nil, err
 	}
@@ -197,4 +209,124 @@ func (b *backend) pathAuthLogin(ctx context.Context, req *logical.Request, d *fr
 func (b *backend) pathAuthRenew(ctx context.Context, req *logical.Request, d *framework.FieldData) (*logical.Response, error) {
 	// TODO
 	return nil, nil
+}
+
+// The JWT logic
+
+func parseCertificateFromJWT(raw string) (*x509.Certificate, error) {
+	tok, err := jwt.ParseSigned(raw)
+
+	if err != nil {
+		return nil, err
+	}
+
+	hdrs := tok.Headers
+	if len(hdrs) != 1 {
+		return nil, errors.New("Incorrect header length")
+	}
+
+	jwk := hdrs[0].ExtraHeaders["JWK"]
+
+	jwkMap := jwk.(map[string]interface{})
+
+	x5c := jwkMap["x5c"]
+
+	x5cArray := x5c.([]interface{})
+
+	x5cSigningKey := x5cArray[0].(string)
+
+	b64bytes, errb64 := fromBase64Bytes(x5cSigningKey)
+	if errb64 != nil {
+		return nil, errb64
+	}
+
+	cert, errpc := x509.ParseCertificate(b64bytes)
+
+	if errpc != nil {
+		return nil, errpc
+	}
+
+	if cert.KeyUsage&x509.KeyUsageKeyAgreement == 0 {
+		return nil, errors.New("Invalid cert key usage")
+	}
+
+	return cert, nil
+}
+
+func parseCertificateFromJWT2(raw string) (*jwt_record, error) {
+	tok, err := jwt.ParseSigned(raw)
+
+	jwtr := new(jwt_record)
+
+	if err != nil {
+		return nil, err
+	}
+
+	policyClaims := struct {
+		Policies []string
+	}{}
+
+	hdrs := tok.Headers
+	if len(hdrs) != 1 {
+		return nil, errors.New("Incorrect header length")
+	}
+
+	jwk := hdrs[0].ExtraHeaders["JWK"]
+
+	jwkMap := jwk.(map[string]interface{})
+
+	x5c := jwkMap["x5c"]
+
+	x5cArray := x5c.([]interface{})
+
+	x5cSigningKey := x5cArray[0].(string)
+
+	b64bytes, errb64 := fromBase64Bytes(x5cSigningKey)
+	if errb64 != nil {
+		return nil, errb64
+	}
+
+	cert, errpc := x509.ParseCertificate(b64bytes)
+
+	if errpc != nil {
+		return nil, errpc
+	}
+
+	if cert.KeyUsage&x509.KeyUsageKeyAgreement == 0 {
+		return nil, errors.New("Invalid cert key usage")
+	}
+
+	out := jwt.Claims{}
+	if err := tok.Claims(cert.PublicKey, &out, &policyClaims); err != nil {
+		return nil, err
+	}
+
+	if len(policyClaims.Policies) == 0 {
+		return nil, errors.New("No roles defined")
+	}
+
+	jwtr.cert = cert
+	jwtr.policies = policyClaims.Policies
+
+	return jwtr, nil
+}
+
+func fromBase64Bytes(b64 string) ([]byte, error) {
+	re := regexp.MustCompile(`\s+`)
+	val, err := base64.StdEncoding.DecodeString(re.ReplaceAllString(b64, ""))
+	if err != nil {
+		return nil, errors.New("Invalid certificate data or incorrect format")
+	}
+	return val, nil
+}
+
+func contains(slice []string, str string) bool {
+
+	set := make(map[string]struct{}, len(slice))
+	for _, s := range slice {
+		set[s] = struct{}{}
+	}
+	_, ok := set[str]
+	return ok
+
 }

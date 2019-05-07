@@ -2,7 +2,10 @@ GOLANG_VERSION := latest
 SRC_PATH := $(shell go list -e)
 TARGET := $(shell basename ${SRC_PATH})
 TARGET_DIR := dev/vault/plugins
+PWD_DIR := $(shell pwd)
 SRC = $(shell find . -type f -name '*.go' -not -path "./vendor/*")
+
+print-%  : ; @echo $* = $($*)
 
 build: $(TARGET_DIR)/$(TARGET)
 	@true

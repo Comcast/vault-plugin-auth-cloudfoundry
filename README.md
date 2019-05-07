@@ -60,6 +60,19 @@ For local development, Vault can be started in `dev` mode. This mode, as the nam
 is useful for local development since the service starts unsealed and with a pre-determined root
 token. Note: The `vault` binary should be downloaded and available in `$PATH`.
 
+In executing the below, you may see an error similar to
+
+```shell
+Error registering plugin cloudfoundry: Put https://127.0.0.1:8200/v1/sys/plugins/catalog/auth/cloudfoundry: http: server gave HTTP response to HTTPS client
+```
+
+You may need to set VAULT_ADDR:
+```shell
+export VAULT_ADDR='http://127.0.0.1:8200'
+```
+
+
+
 Start Vault in dev mode using `local.hcl` config file:
 ```shell
 VAULT_DEV_LISTEN_ADDRESS=0.0.0.0:8200 vault server -dev -dev-root-token-id="root" -config=dev/vault/config/local.hcl
