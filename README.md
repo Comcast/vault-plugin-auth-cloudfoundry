@@ -92,6 +92,11 @@ vault auth enable -path=cloudfoundry cloudfoundry
 You will need instance crt and key files from a CF instance and then you will need to set two environment variables:
 
 ```shell
+# Example to get the keys from an instance
+# cf ssh <my_app> -c "cat /etc/cf-instance-credentials/instance.key" >/Users/myname/cf_certs/instance.key
+# cf ssh <my_app> -c "cat /etc/cf-instance-credentials/instance.crt" >/Users/myname/cf_certs/instance.crt
+#
+
 export CF_INSTANCE_KEY="<Local/Path/To/instance.key>"
 export CF_INSTANCE_CERT="<Local/Path/To/instance.crt>"
 ```
@@ -109,5 +114,20 @@ Once you have a local JWT token, you can then issue a login command.
 
 ```shell
 vault write auth/cloudfoundry/login jwt=@/tmp/jwt
+
+# Result Example
+Key                    Value
+---                    -----
+token                  s.IizX6LDtSyHxFRJkTYK3K693
+token_accessor         IkpuyLTSSgzwbOfBS4mIvIbi
+token_duration         2h23m19s
+token_renewable        true
+token_policies         ["default" "read-only"]
+identity_policies      []
+policies               ["default" "read-only"]
+token_meta_cf_app      e89f1899-7904-4804-8020-323c533bdbc6
+token_meta_cf_org      5155a5ba-08b9-439b-a12a-bfcff4e180cc
+token_meta_cf_space    0738a7cb-ca84-4e1f-9529-e88ac1f814c4
+
 
 ```
