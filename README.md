@@ -107,10 +107,24 @@ Once this is done, you can then run cmd/cf-jwtmain.go
 # This currently builds a JWT token and installs it in /tmp in a file called jwt. This will be more sophisticated later.
 # go run main.go <policy> 
 # where policy is a previously configured policy in Vault for the org/space for the instance.
-Example: go run main.go read-only
+To get a list of command line arguments: 
+> go run main.go 
+  -location string
+        Directory and filename for JWT token (stdout is false) (default "/tmp/jwt")
+  -policies string
+        Policy or (comma-delimited) Policies to include in JWT token
+  -stdout
+        Print to STDOUT (default is false)
+exit status 1
+
+# To print JWT to stdout
+> go run main.go -policies ReadOnlyAccess -stdout
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
+
+# Note: Example JWT-only.
 ```
 
-Once you have a local JWT token, you can then issue a login command.
+Once you have a local JWT token, you can then issue a login command. The below presupposes a JWT stored in a file called "jwt" in /tmp
 
 ```shell
 vault write auth/cloudfoundry/login jwt=@/tmp/jwt

@@ -5,11 +5,14 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"errors"
+	"flag"
+	"fmt"
 	"gopkg.in/square/go-jose.v2"
 	"gopkg.in/square/go-jose.v2/jwt"
 	"io/ioutil"
 	"log"
 	"os"
+	"strings"
 )
 
 /*
@@ -24,7 +27,20 @@ type jwt_record struct {
 
 func main() {
 
-	roles := os.Args[1:]
+	policiesPtr := flag.String("policies", "", "Policy or (comma-delimited) Policies to include in JWT token")
+
+	stdoutPtr := flag.Bool("stdout", false, "Print to STDOUT (default is false)")
+
+	locationPtr := flag.String("location", "/tmp/jwt", "Directory and filename for JWT token (stdout is false)")
+
+	flag.Parse()
+
+	if *policiesPtr == "" {
+		flag.PrintDefaults()
+		os.Exit(1)
+	}
+
+	policies := strings.Split(*policiesPtr, ",")
 
 	instanceKey := os.Getenv("CF_INSTANCE_KEY")
 	instanceCert := os.Getenv("CF_INSTANCE_CERT")
@@ -64,7 +80,7 @@ func main() {
 	c2 := struct {
 		Policies []string
 	}{
-		roles,
+		policies,
 	}
 
 	cl := jwt.Claims{
@@ -76,10 +92,15 @@ func main() {
 		log.Fatal(err.Error())
 	}
 
-	errWrite := ioutil.WriteFile("/tmp/jwt", []byte(raw), 0644)
+	if *stdoutPtr == false {
 
-	if errWrite != nil {
-		log.Fatal(errWrite.Error())
+		errWrite := ioutil.WriteFile(*locationPtr, []byte(raw), 0644)
+
+		if errWrite != nil {
+			log.Fatal(errWrite.Error())
+		}
+	} else {
+		fmt.Printf("\n%s\n", raw)
 	}
 
 }
