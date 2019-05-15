@@ -39,9 +39,17 @@ Prereqs:
   vault write auth/cloudfoundry/map/spaces/space-uuid value=$name-of-policy,$another-policy
   ```
 
+* Built JWT token. A function is included under cmd/cf-jwt but can easily be via a method of your choice
+
+  ```shell
+  go run main.go -policies ReadOnlyPolicy,ReadWritePolicy -location /tmp/jwt
+  
+  ```
+
+
 * Login using CF instance certificate
   ```shell
-  vault write auth/cloudfoundry/login cert=@path/to/instance.crt
+  vault write auth/cloudfoundry/login jwt=@path/to/jwt
   ```
 
 ### Local Development

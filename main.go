@@ -119,7 +119,7 @@ func (b *backend) pathAuthLogin(ctx context.Context, req *logical.Request, d *fr
 	}
 
 	cert := jwtParsedRecord.cert
-	//policies := jwtParsedRecord.policies
+	policies := jwtParsedRecord.policies
 
 	var cf struct {
 		org   string
@@ -166,23 +166,43 @@ func (b *backend) pathAuthLogin(ctx context.Context, req *logical.Request, d *fr
 
 	orgPolicies, err := b.orgMap.Policies(ctx, req.Storage, cf.org)
 
-	/*
-	       for _, policy := range policies {
-	            containsOrgPolicy := contains(orgPolicies, policy)
-	   	}
+	// Policy in JWT token should be in either the org or space policies
+	ineither := false
+	for _, policy := range policies {
+		fmt.Printf("Policy %s Org Policy %s", policy, orgPolicies)
+		containsOrgPolicy := contains(orgPolicies, policy)
+		if containsOrgPolicy == true {
+			ineither = true
+		}
+	}
 
-	*/
+	fmt.Printf("InEither %d", ineither)
 
 	if err != nil {
 		return nil, err
 	}
 	spacePolicies, err := b.spaceMap.Policies(ctx, req.Storage, cf.space)
+
+	for _, policy := range policies {
+		fmt.Printf("Policy %s Space Policy %s", policy, orgPolicies)
+		containsSpacePolicy := contains(spacePolicies, policy)
+		if containsSpacePolicy == true {
+			ineither = true
+		}
+	}
+
 	if err != nil {
 		return nil, err
 	}
 
+	fmt.Printf("InEither (after Space Check) %d", ineither)
+
 	if len(orgPolicies) == 0 && len(spacePolicies) == 0 {
 		return logical.ErrorResponse(fmt.Sprintf("no policies mapped to org:%s space:%s", cf.org, cf.space)), nil
+	}
+
+	if ineither == false {
+		return nil, errors.New("JWT Policy Not Found")
 	}
 
 	certTTL := time.Until(cert.NotAfter)
